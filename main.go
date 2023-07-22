@@ -9,7 +9,10 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 )
 
-var fFilePath = flag.String("files", "/data/files", "Path to static files")
+var (
+	fFilePath      = flag.String("files", "/data/files", "Path to static files")
+	fCacheDuration = flag.Duration("cache", 12*time.Hour, "Cache duration for static files")
+)
 
 func main() {
 	flag.Parse()
@@ -29,9 +32,8 @@ func main() {
 		Compress:      true,
 		Browse:        false,
 		Download:      false,
-		CacheDuration: 12 * time.Hour,
-		// let the browser cache this item for 12 hours, after that it should refresh
-		MaxAge: 43200,
+		CacheDuration: *fCacheDuration,
+		MaxAge:        int((*fCacheDuration).Seconds()),
 	})
 
 	if err := app.Listen(":3000"); err != nil {
