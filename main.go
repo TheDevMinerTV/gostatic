@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 )
 
@@ -13,6 +14,7 @@ var (
 	fFilePath      = flag.String("files", "/data/files", "Path to static files")
 	fCacheDuration = flag.Duration("cache", 12*time.Hour, "Cache duration for static files")
 	fAddr          = flag.String("addr", ":3000", "Address to listen on")
+	fCompressLevel = flag.Int("compress-level", 1, "Compression level for static files")
 )
 
 func main() {
@@ -26,12 +28,19 @@ func main() {
 		log.Printf("No address specified")
 	}
 
+	if *fCompressLevel < -1 || *fCompressLevel > 2 {
+		log.Printf("Invalid compression level")
+	}
+
 	app := fiber.New(fiber.Config{
 		GETOnly:           true,
 		EnablePrintRoutes: true,
 	})
 
 	app.Use(logger.New())
+	app.Use(compress.New(compress.Config{
+		Level: compress.Level(*fCompressLevel),
+	}))
 
 	app.Static("/", *fFilePath, fiber.Static{
 		Compress:      true,
