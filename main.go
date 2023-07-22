@@ -12,6 +12,7 @@ import (
 var (
 	fFilePath      = flag.String("files", "/data/files", "Path to static files")
 	fCacheDuration = flag.Duration("cache", 12*time.Hour, "Cache duration for static files")
+	fAddr          = flag.String("addr", ":3000", "Address to listen on")
 )
 
 func main() {
@@ -19,6 +20,10 @@ func main() {
 
 	if *fFilePath == "" {
 		log.Printf("No files path specified")
+	}
+
+	if *fAddr == "" {
+		log.Printf("No address specified")
 	}
 
 	app := fiber.New(fiber.Config{
@@ -36,7 +41,7 @@ func main() {
 		MaxAge:        int((*fCacheDuration).Seconds()),
 	})
 
-	if err := app.Listen(":3000"); err != nil {
+	if err := app.Listen(*fAddr); err != nil {
 		log.Fatal(err)
 	}
 }
