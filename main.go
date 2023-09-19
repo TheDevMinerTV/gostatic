@@ -15,6 +15,7 @@ var (
 	fCacheDuration = flag.Duration("cache", 12*time.Hour, "Cache duration for static files")
 	fAddr          = flag.String("addr", ":3000", "Address to listen on")
 	fCompressLevel = flag.Int("compress-level", 1, "Compression level for static files")
+	fLogRequests   = flag.Bool("log-requests", false, "Log requests to stdout")
 )
 
 func main() {
@@ -37,7 +38,10 @@ func main() {
 		EnablePrintRoutes: true,
 	})
 
-	app.Use(logger.New())
+	if *fLogRequests {
+		app.Use(logger.New())
+	}
+
 	app.Use(compress.New(compress.Config{
 		Level: compress.Level(*fCompressLevel),
 	}))
