@@ -14,7 +14,7 @@ var (
 	fFilePath      = flag.String("files", "/data/files", "Path to static files")
 	fCacheDuration = flag.Duration("cache", 12*time.Hour, "Cache duration for static files")
 	fAddr          = flag.String("addr", ":3000", "Address to listen on")
-	fCompressLevel = flag.Int("compress-level", 1, "Compression level for static files")
+	fCompressLevel = flag.Int("compress-level", 1, "Compression level for static files. Setting this to -1 will entirely remove the middleware.")
 	fLogRequests   = flag.Bool("log-requests", false, "Log requests to stdout")
 )
 
@@ -29,7 +29,7 @@ func main() {
 		log.Printf("No address specified")
 	}
 
-	if *fCompressLevel < -1 || *fCompressLevel > 2 {
+	if *fCompressLevel < -2 || *fCompressLevel > 2 {
 		log.Printf("Invalid compression level")
 	}
 
@@ -42,9 +42,11 @@ func main() {
 		app.Use(logger.New())
 	}
 
-	app.Use(compress.New(compress.Config{
-		Level: compress.Level(*fCompressLevel),
-	}))
+	if *fCompressLevel >= 0 {
+		app.Use(compress.New(compress.Config{
+			Level: compress.Level(*fCompressLevel),
+		}))
+	}
 
 	app.Static("/", *fFilePath, fiber.Static{
 		Compress:      true,
