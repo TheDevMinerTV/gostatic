@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"log"
+	"path/filepath"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -16,6 +17,8 @@ var (
 	fAddr          = flag.String("addr", ":3000", "Address to listen on")
 	fCompressLevel = flag.Int("compress-level", 1, "Compression level for static files. 0 = disabled, 1 = default, 2 = best")
 	fLogRequests   = flag.Bool("log-requests", false, "Log requests to stdout")
+	fSPA           = flag.Bool("spa", false, "Serve index.html for 404 pages (for SPA apps)")
+	fIndex         = flag.String("index", "index.html", "Index file relative from the files path")
 )
 
 func main() {
@@ -52,12 +55,22 @@ func main() {
 		}))
 	}
 
-	log.Printf("Serving files from %s", *fFilePath)
+	if *fSPA {
+		log.Printf("Serving files from %s as SPA", *fFilePath)
+
+		app.Use(func(c *fiber.Ctx) error {
+			return c.SendFile(filepath.Join(*fFilePath, *fIndex))
+		})
+	} else {
+		log.Printf("Serving files from %s", *fFilePath)
+	}
+
 	app.Static("/", *fFilePath, fiber.Static{
 		Compress:      true,
 		Browse:        false,
 		Download:      false,
 		CacheDuration: *fCacheDuration,
+		Index:         *fIndex,
 		MaxAge:        int((*fCacheDuration).Seconds()),
 	})
 
