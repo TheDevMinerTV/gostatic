@@ -57,10 +57,6 @@ func main() {
 
 	if *fSPA {
 		log.Printf("Serving files from %s as SPA", *fFilePath)
-
-		app.Use(func(c *fiber.Ctx) error {
-			return c.SendFile(filepath.Join(*fFilePath, *fIndex))
-		})
 	} else {
 		log.Printf("Serving files from %s", *fFilePath)
 	}
@@ -73,6 +69,12 @@ func main() {
 		Index:         *fIndex,
 		MaxAge:        int((*fCacheDuration).Seconds()),
 	})
+
+	if *fSPA {
+		app.Use(func(c *fiber.Ctx) error {
+			return c.SendFile(filepath.Join(*fFilePath, *fIndex))
+		})
+	}
 
 	log.Printf("Listening on %s", *fAddr)
 	if err := app.Listen(*fAddr); err != nil {
