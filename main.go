@@ -36,6 +36,8 @@ func main() {
 		log.Printf("Invalid compression level")
 	}
 
+	index := filepath.Join(*fFilePath, *fIndex)
+
 	app := fiber.New(fiber.Config{
 		GETOnly:           true,
 		EnablePrintRoutes: true,
@@ -56,23 +58,22 @@ func main() {
 	}
 
 	if *fSPA {
-		log.Printf("Serving files from %s as SPA", *fFilePath)
+		log.Printf("Serving files from %s as SPA with index file %s", *fFilePath, index)
 	} else {
-		log.Printf("Serving files from %s", *fFilePath)
+		log.Printf("Serving files from %s with index file %s", *fFilePath, index)
 	}
 
 	app.Static("/", *fFilePath, fiber.Static{
 		Compress:      true,
-		Browse:        false,
 		Download:      false,
 		CacheDuration: *fCacheDuration,
-		Index:         *fIndex,
 		MaxAge:        int((*fCacheDuration).Seconds()),
 	})
 
 	if *fSPA {
 		app.Use(func(c *fiber.Ctx) error {
-			return c.SendFile(filepath.Join(*fFilePath, *fIndex))
+			log.Printf("Serving index.html for %s", c.Path())
+			return c.SendFile(index)
 		})
 	}
 
