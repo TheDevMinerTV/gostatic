@@ -68,6 +68,7 @@ func main() {
 		Download:      false,
 		CacheDuration: *fCacheDuration,
 		MaxAge:        int((*fCacheDuration).Seconds()),
+		ByteRange:     true,
 	})
 
 	if *fSPA {
