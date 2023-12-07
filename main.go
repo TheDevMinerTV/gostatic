@@ -19,6 +19,7 @@ var (
 	fLogRequests   = flag.Bool("log-requests", false, "Log requests to stdout")
 	fSPA           = flag.Bool("spa", false, "Serve index.html for 404 pages (for SPA apps)")
 	fIndex         = flag.String("index", "index.html", "Index file relative from the files path")
+	fDownload      = flag.Bool("download", false, "Enables direct Download for Served Files")
 )
 
 func main() {
@@ -49,6 +50,10 @@ func main() {
 		app.Use(logger.New())
 	}
 
+	if *fDownload {
+		log.Printf("Enabling downloads")
+	}
+
 	if *fCompressLevel > 0 {
 		log.Printf("Enabling compression: %d", *fCompressLevel)
 
@@ -65,7 +70,7 @@ func main() {
 
 	app.Static("/", *fFilePath, fiber.Static{
 		Compress:      true,
-		Download:      false,
+		Download:      *fDownload,
 		CacheDuration: *fCacheDuration,
 		MaxAge:        int((*fCacheDuration).Seconds()),
 		ByteRange:     true,
