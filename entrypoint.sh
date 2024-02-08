@@ -2,4 +2,4 @@
 
 chown -R app:app /static
 
-su app -c "/bin/gostatic --files /static --addr :80 $*"
+exec su app -c "/bin/gostatic --files /static --addr :80 $*"
