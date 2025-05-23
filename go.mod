@@ -2,7 +2,7 @@ module devminer.xyz/gostatic
 
 go 1.21
 
-require github.com/gofiber/fiber/v2 v2.52.6
+require github.com/gofiber/fiber/v2 v2.52.7
 
 require (
 	github.com/andybalholm/brotli v1.1.0 // indirect
