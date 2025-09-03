@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"log"
+	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -22,6 +24,7 @@ var (
 	fSPA           = flag.Bool("spa", false, "Serve index.html for 404 pages (for SPA apps)")
 	fIndex         = flag.String("index", "index.html", "Index file relative from the files path")
 	fDownload      = flag.Bool("download", false, "Enables direct Download for Served Files")
+	fUsersFile     = flag.String("users-file", "", "Path to JSON file containing user credentials")
 )
 
 type userList []string
@@ -52,6 +55,21 @@ func parseUsers(userList []string) map[string]string {
 	return userMap
 }
 
+func parseUsersFromJSON(filePath string) (map[string]string, error) {
+	fd, err := os.Open(filePath)
+	if err != nil {
+		return nil, err
+	}
+	defer fd.Close()
+
+	var userMap map[string]string
+	if err := json.NewDecoder(fd).Decode(&userMap); err != nil {
+		return nil, err
+	}
+
+	return userMap, nil
+}
+
 func main() {
 	flag.Var(&users, "user", "User credentials in format username:password (can be used multiple times)")
 	flag.Parse()
@@ -76,6 +94,19 @@ func main() {
 	})
 
 	userMap := parseUsers(users)
+
+	if *fUsersFile != "" {
+		jsonUsers, err := parseUsersFromJSON(*fUsersFile)
+		if err != nil {
+			log.Printf("Error reading users file %s: %v", *fUsersFile, err)
+		} else if jsonUsers != nil {
+			log.Printf("Loaded %d users from %s", len(jsonUsers), *fUsersFile)
+			for username, password := range jsonUsers {
+				userMap[username] = password
+			}
+		}
+	}
+
 	if len(userMap) > 0 {
 		log.Printf("Enabling basic authentication")
 
