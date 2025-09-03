@@ -4,9 +4,11 @@ import (
 	"flag"
 	"log"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/basicauth"
 	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 )
@@ -22,7 +24,36 @@ var (
 	fDownload      = flag.Bool("download", false, "Enables direct Download for Served Files")
 )
 
+type userList []string
+
+func (u *userList) String() string {
+	return ""
+}
+
+func (u *userList) Set(value string) error {
+	*u = append(*u, value)
+	return nil
+}
+
+var users userList
+
+func parseUsers(userList []string) map[string]string {
+	userMap := make(map[string]string)
+	for _, user := range userList {
+		parts := strings.SplitN(user, ":", 2)
+		if len(parts) == 2 {
+			username := strings.TrimSpace(parts[0])
+			password := strings.TrimSpace(parts[1])
+			if username != "" && password != "" {
+				userMap[username] = password
+			}
+		}
+	}
+	return userMap
+}
+
 func main() {
+	flag.Var(&users, "user", "User credentials in format username:password (can be used multiple times)")
 	flag.Parse()
 
 	if *fFilePath == "" {
@@ -43,6 +74,20 @@ func main() {
 		GETOnly:           true,
 		EnablePrintRoutes: true,
 	})
+
+	userMap := parseUsers(users)
+	if len(userMap) > 0 {
+		log.Printf("Enabling basic authentication")
+
+		app.Use(basicauth.New(basicauth.Config{
+			Users: userMap,
+			Realm: "Restricted Area",
+			Authorizer: func(user, pass string) bool {
+				expectedPass, exists := userMap[user]
+				return exists && expectedPass == pass
+			},
+		}))
+	}
 
 	if *fLogRequests {
 		log.Printf("Enabling request logging")

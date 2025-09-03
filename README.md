@@ -15,6 +15,7 @@ Additionally, you can add the following flags:
 -index <file> # The file to serve when the path ends in `/` (default=index.html)
 -spa # Make all 404 pages the index file, useful for SPA apps that use client side routing
 -download # Enable downloading files
+-user <username:password> # Add a user for basic authentication (can be used multiple times)
 ```
 
 You can just add these to the end of the `docker run` command.
