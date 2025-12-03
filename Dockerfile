@@ -7,7 +7,7 @@ RUN go mod download
 COPY . .
 RUN CGO_ENABLED=0 go build -o /bin/gostatic -ldflags="-w -s"
 
-FROM alpine:3.22 AS runner
+FROM alpine:3.23 AS runner
 RUN adduser -D -u 1000 app && \
   apk add --no-cache mailcap
 COPY ./entrypoint.sh /entrypoint.sh
