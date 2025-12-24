@@ -16,6 +16,7 @@ EXPOSE 80
 
 COPY --from=builder /bin/gostatic /bin/gostatic
 
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 CMD [ "wget", "http://127.0.0.1:80" ]
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+  CMD [ "wget", "--no-verbose", "--tries=1", "--output-document=/dev/null", "http://127.0.0.1:80" ]
 
 ENTRYPOINT ["/entrypoint.sh"]
